@@ -31,6 +31,13 @@ typedef struct __attribute__((__packed__)) {
   DWORD biClrImportant;
 } BITMAPINFOHEADER;
 
+typedef struct __attribute__((__packed__)) {
+        unsigned char   b; //rgbtBlue;
+        unsigned char   g; //rgbtGreen;
+        unsigned char   r; //rgbtRed;
+} PIX;
+
+
 int main(int argc, char const *argv[]) {
   FILE *fileBMP;
   BITMAPFILEHEADER bitmapFileHeader;
@@ -76,7 +83,7 @@ int main(int argc, char const *argv[]) {
     printf("Histogram calculation is unsupported!");
   }
   else{
-    int size = bitmapInfoHeader.biSizeImage;
+    int size = bitmapFileHeader.bfSize;
     int height = bitmapInfoHeader.biHeight;
     int width = bitmapInfoHeader.biWidth;
 
@@ -91,20 +98,48 @@ int main(int argc, char const *argv[]) {
     int color_val = 0;
     int divi = size / 3;
     int blue, green, red;
-    unsigned char *data = malloc(size);
-    fread(data, 1, size, fileBMP);
-    for(int row = height - 1; row >= 0; row--){
+    int padding = width % 4;
+    unsigned char *data = malloc(sizeof(unsigned char) * size);
+
+    fread(data, sizeof(unsigned char), size, fileBMP);
+    fclose(fileBMP);
+
+        //NEW FILE CREATING
+    char *newfilename;
+    printf("Type new file name with .bmp:\n");
+    scanf("%s", newfilename);
+
+    FILE *newfile;
+    newfile = fopen(newfilename,"wb");
+    fwrite(&bitmapFileHeader,1,sizeof(bitmapFileHeader),newfile);
+    fwrite(&bitmapInfoHeader,1,sizeof(bitmapInfoHeader),newfile);
+        //fwrite(data,sizeof(WORD),bitmapInfoHeader.biSizeImage,newfile);
+
+    //for(int row = 0; row < height; row++){}
+    //for(int row = height - 1; row >= 0; row--)
+    for(int row = 0; row < height; row++){
       for(int col = 0; col < width; col++) {
-        int p = (row * width + col) * 3 + row;
+        int p = (row * width + col) * 3 + row * padding;
+        //printf("%d %d %d\n", data[p+0], data[p+1], data[p+2]);
+        int grey_val = 0;
         for(int k = 0; k < 3; k++){
+          grey_val += data[p+k];
           color_val = data[p + k];
           color_val /= 16;
           hist[k][color_val]+=1;
+        }
+        grey_val = grey_val/3;
+        for(int k=0;k<3;k++){
+          fwrite(&grey_val,1,1,newfile);
         }
         //GREYs
       }
     //HISTOGRAM OUTPUT
     }
+    fclose(newfile);
+
+
+
     char *rgb[3] = {"BLUE","GREEN","RED"};
     for(int i = 2; i >= 0; i--){
       printf("%s:\n",rgb[i]);
@@ -117,7 +152,7 @@ int main(int argc, char const *argv[]) {
       }
     }
   }
+  ///NEW FILE CREATION
 
-  fclose(fileBMP);
   return 0;
 }
