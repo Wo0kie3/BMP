@@ -121,7 +121,8 @@ int main(int argc, char const *argv[]) {
       }
     }
     int color_val = 0;
-    int divi = size / 3;
+    //int divi = size / 3;
+    int divi = height * width;
     int padding = width % 4;
     unsigned char *data = malloc(sizeof(unsigned char) * size);
 
@@ -259,6 +260,7 @@ int main(int argc, char const *argv[]) {
         BITMAPINFOHEADER decryptbitmapInfoHeader;
         decryptFile = fopen(argv[1],"rb");
         if (decryptFile == 0){
+          free(data);
           return 0;
         }
 
@@ -277,7 +279,6 @@ int main(int argc, char const *argv[]) {
           dec_len += pot;
         }
         printf("Decrypted messege:\n");
-        char wiadomosc[dec_len];
         for(int i = 0;i<dec_len;i++){
           int znak[8];
           for(int j=0;j<8;j++){
@@ -297,11 +298,14 @@ int main(int argc, char const *argv[]) {
           }
         }
         printf("\n");
+        free(decryptdata);
       }
       else{
+        free(data);
         return 0;
       }
     }
+    free(data);
   }
   return 0;
 }
